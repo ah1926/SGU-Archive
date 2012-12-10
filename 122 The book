@@ -1,0 +1,62 @@
+#include <iostream>
+#include <algorithm>
+#include <cstring>
+
+using namespace std;
+
+const int MaxN = 1005;
+const int MaxL = 10000;
+
+int N, Path[MaxN];
+bool G[MaxN][MaxN];
+
+inline int FindPair(int P1) {
+    for (int P2 = 1; P2 <= N; ++P2)
+        if (G[Path[P1]][Path[P2]] && G[Path[P1 + 1]][Path[P2 + 1]])
+            return P2;
+    return 0;
+}
+
+inline void Reverse(int L, int R) {
+    if (L > R)
+        swap(L, R);
+    reverse(Path + L + 1, Path + R + 1);
+}
+
+void Solve() {
+    for (int i = 1; i <= N; ++i)
+        Path[i] = i;
+    Path[N + 1] = 1;
+    for (int i = 1; i <= N; ++i)
+        if (!G[Path[i]][Path[i + 1]])
+            Reverse(i, FindPair(i));
+}
+
+void Read() {
+    char String[MaxL], *Adjacent;
+    cin.getline(String, MaxL);
+    N = atoi(String);
+    for (int X = 1; X <= N; ++X) {
+        cin.getline(String, MaxL);
+        Adjacent = strtok(String, " ");
+        do {
+            int Y = atoi(Adjacent);
+            G[X][Y] = true;
+            Adjacent = strtok(NULL, " ");
+        } while (Adjacent != NULL);
+    }
+}
+
+void Print() {
+    for (int i = 1; i <= N+1; ++i)
+        cout << Path[i] << " ";
+    cout << "\n";
+}
+
+int main() {
+    Read();
+    Solve();
+    Print();
+    return 0;
+}
+
