@@ -1,0 +1,126 @@
+#include <cstdio>
+#include <cstring>
+#include <vector>
+#include <queue>
+#include <algorithm>
+#include <cassert>
+
+using namespace std;
+
+const int MaxV = 100005;
+const int MaxN = 15;
+const int oo = 1000000;
+
+vector<int> G[MaxN];
+int Source, Sink, Capacity[MaxN][MaxN], Flow[MaxN][MaxN], Father[MaxN];
+queue<int> Q;
+
+int NV, Vertex[MaxV], Debt[MaxN];
+char Solution[MaxV];
+
+void InitBFS(int Start) {
+    memset(Father, -1, sizeof(Father));
+    Father[Start] = Start, Q.push(Start);
+}
+
+bool BFS(int Start, int End) {
+    for (InitBFS(Start); !Q.empty(); Q.pop()) {
+        int X = Q.front();
+        if (X == End)
+            continue;
+        for (vector<int>::iterator Y = G[X].begin(); Y != G[X].end(); ++Y)
+            if (Capacity[X][*Y] > Flow[X][*Y] && Father[*Y] == -1)
+                Father[*Y] = X, Q.push(*Y);
+    }
+    return Father[End] != -1;
+}
+
+void MaximumFlow() {
+    int MaxFlow = 0;
+    while (BFS(Source, Sink)) {
+        int CurrentFlow = oo;
+        for (int X = Sink; X != Source; X = Father[X])
+            CurrentFlow = min(CurrentFlow, Capacity[Father[X]][X] - Flow[Father[X]][X]);
+        for (int X = Sink; X != Source; X = Father[X])
+            Flow[Father[X]][X] += CurrentFlow, Flow[X][Father[X]] -= CurrentFlow;
+        MaxFlow += CurrentFlow;
+    }
+}
+
+void BuildSolution() {
+    for (int i = 0; i < NV; ++i) {
+        for(int X = 1; X <= 3; ++X) {
+            if (Flow[X][Vertex[i] + 4] > 0) {
+                Solution[i] = X, Debt[X] -= 2, --Flow[X][Vertex[i] + 4];
+                break;
+            }
+        }
+    }
+    for (int i = 0; i < NV; ++i) {
+        if (Solution[i] != 0)
+            continue;
+        for (int X = 1; X <= 3; ++X) {
+            if (Debt[X] > 0) {
+                Solution[i] = X, --Debt[X];
+                break;
+            }
+        }
+    }
+    for (int i = 0; i < NV; ++i) {
+        if (Solution[i] <= 1)
+            Solution[i] = 'P';
+        if (Solution[i] == 2)
+            Solution[i] = 'O';
+        if (Solution[i] == 3)
+            Solution[i] = 'S';
+    }
+}
+
+void Solve() {
+    MaximumFlow();
+    BuildSolution();
+}
+
+void Read() {
+    Source = 0, Sink = 12;
+    for (int X = 1; X <= 3; ++X) {
+        assert(scanf("%d", &Debt[X]) == 1);
+        Capacity[Source][X] = Debt[X] / 2;
+        G[Source].push_back(X), G[X].push_back(Source);
+    }
+    assert(scanf("%d", &NV) == 1);
+    for (int i = 0; i < NV; ++i) {
+        char Type[4]; assert(scanf("\n%s", Type) == 1);
+        for (int X = 0; X < 3; ++X)
+            if (Type[X] == 'B')
+                Vertex[i] += (1<<X);
+        for (int X = 0; X < 3; ++X)
+            if (Type[X] == 'B')
+                ++Capacity[X + 1][Vertex[i] + 4];
+        ++Capacity[Vertex[i] + 4][Sink];
+    }
+    for (int V = 4; V < Sink; ++V) {
+        for (int X = 1; X <= 3; ++X)
+            if ((V - 4)&(1<<(X - 1)))
+                G[X].push_back(V), G[V].push_back(X);
+        G[V].push_back(Sink), G[Sink].push_back(V);
+    }
+}
+
+void Print() {
+    for (int X = 1; X <= 3; ++X) {
+        if (Debt[X] > 0) {
+            printf("no solution\n");
+            return;
+        }
+    }
+    printf("%s\n", Solution);
+}
+
+int main() {
+    Read();
+    Solve();
+    Print();
+    return 0;
+}
+
