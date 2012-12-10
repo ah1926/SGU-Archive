@@ -1,0 +1,116 @@
+#include <cstdio>
+#include <stack>
+#include <set>
+#include <map>
+#include <cstring>
+#include <algorithm>
+#include <cassert>
+
+using namespace std;
+
+const int MaxN = 100005;
+
+map<pair<int, int>, int> E;
+set<int> G[MaxN];
+int N, K, L[MaxN], R[MaxN];
+bool V[MaxN];
+stack<int> Stack, ETour;
+
+inline void Erase(const int X, const int Y) {
+    G[X].erase(Y), G[Y].erase(X);
+}
+
+inline void Euler(int X) {
+    while (!G[X].empty()) {
+        Stack.push(X);
+        int Y = *G[X].begin();
+        Erase(X, Y);
+        X = Y;
+    }
+}
+
+void EulerianTour(int X) {
+    do {
+        Euler(X);
+        X = Stack.top(); Stack.pop();
+        ETour.push(X);
+    } while (!Stack.empty());
+}
+
+void DirectComponent(int Root) {
+    EulerianTour(Root);
+    int X = ETour.top(), Y, First = ETour.top();
+    for (ETour.pop(); !ETour.empty(); ETour.pop()) {
+        Y = ETour.top();
+        G[X].insert(Y); V[X] = true;
+        X = Y;
+    }
+    G[X].insert(First); V[X] = true;
+}
+
+void DirectGraph() {
+    for (int X = 1; X <= N; ++X)
+        if (!V[X])
+            DirectComponent(X);
+}
+
+int PairUp(const int X) {
+    if (V[X])
+        return 0;
+    V[X] = true;
+    for (set<int>::iterator Y = G[X].begin(); Y != G[X].end(); ++Y) {
+        if (L[*Y] == 0) {
+            L[*Y] = X, R[X] = *Y;
+            return 1;
+        }
+    }
+    for (set<int>::iterator Y = G[X].begin(); Y != G[X].end(); ++Y) {
+        if (PairUp(L[*Y])) {
+            L[*Y] = X, R[X] = *Y;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void MaximumMatching() {
+    for (int Change = 1; Change; ) {
+        Change = 0; memset(V, 0, sizeof(V));
+        for (int X = 1; X <= N; ++X)
+            if (!R[X])
+                Change |= PairUp(X);
+    }
+}
+
+void Solve() {
+    DirectGraph();
+    MaximumMatching();
+}
+
+void Read() {
+    assert(scanf("%d %d", &N, &K) == 2);
+    for (int i = 1; i <= N*K/2; ++i) {
+        int X, Y; assert(scanf("%d %d", &X, &Y) == 2);
+        if (X > Y)
+            swap(X, Y);
+        G[X].insert(Y), G[Y].insert(X);
+        E[make_pair(X, Y)] = i;
+    }
+}
+
+void Print() {
+    printf("YES\n");
+    for (int V = 1; V <= N; ++V) {
+        int X = V, Y = R[V];
+        if (X > Y)
+            swap(X, Y);
+        printf("%d\n", E[make_pair(X, Y)]);
+    }
+}
+
+int main() {
+    Read();
+    Solve();
+    Print();
+    return 0;
+}
