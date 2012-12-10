@@ -1,0 +1,80 @@
+#include <cstdio>
+#include <bitset>
+#include <algorithm>
+#include <cassert>
+
+using namespace std;
+
+typedef unsigned long long LL;
+
+const int MaxN = 66;
+const int MaxM = 5005;
+const int Mod = 666777;
+
+bitset<MaxM> A[MaxN];
+int N, M, Bit[MaxN], FreeVariables, NSol;
+LL Value[MaxM], Solution, NSolution;
+
+void BuildSystem() {
+    for (int i = 0; i < N; ++i) {
+        for (int j = 1; j <= M; ++j)
+            A[N - i][j] = (Value[j]>>i)&1;
+        A[N - i][M  +1] = 1;
+        Bit[N - i] = i;
+    }
+}
+
+inline bool Valid(bitset<MaxM> Equation) {
+    return !(Equation.count() == 1 && Equation[M+1] == 1);
+}
+
+void Gauss() {
+    FreeVariables = M;
+    int i = 1, j = 1;
+    while (i <= N && j <= M) {
+        int k;
+        for (k = i; k <= N; ++k)
+            if (A[k][j] && (!A[i][j] || Bit[k] > Bit[i]))
+                swap(A[i], A[k]), swap(Bit[i], Bit[k]);
+        if (!A[i][j]) {
+            ++j; continue;
+        }
+        --FreeVariables;
+        for (k = i + 1; k <= N; ++k)
+            if (A[k][j] && !Valid(A[i]^A[k]))
+                A[k][M + 1] = A[k][M + 1]^1, Solution ^= (1LL<<Bit[k]);
+        for (k = 1; k <= N; ++k)
+            if (i != k && A[k][j])
+                A[k] ^= A[i];
+        ++i, ++j;
+    }
+    for (i = 1; i <= N; ++i)
+        if (!Valid(A[i]))
+            A[i][M + 1] = A[i][M+1]^1, Solution ^= (1LL<<Bit[i]);
+}
+
+void Solve() {
+    for (int i = 0; i < N; ++i)
+        Solution ^= (1LL<<i);
+    BuildSystem();
+    Gauss();
+    for (NSolution = 1; FreeVariables > 0; --FreeVariables)
+        NSolution = (2 * NSolution)%Mod;
+}
+
+void Read() {
+    assert(scanf("%d", &M) == 1); N = 64;
+    for (int i = 1; i <= M; ++i)
+        assert(scanf("%I64u", &Value[i]) == 1);
+}
+
+void Print() {
+    printf("%I64u\n", Solution);
+}
+
+int main() {
+    Read();
+    Solve();
+    Print();
+    return 0;
+}
