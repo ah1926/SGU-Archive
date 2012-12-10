@@ -1,0 +1,53 @@
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+typedef long long LL;
+
+const int MaxC = 1<<15;
+
+int N, M, K;
+LL DP[2][MaxC], S;
+
+inline int Count(int Conf) {
+    int c = 0;
+    for (int i = 0; i < M; ++i)
+        c += ((Conf>>i)&1);
+    return c;
+}
+
+void InitDP() {
+    for (int Conf = 0; Conf < (1<<M); ++Conf) {
+        DP[0][Conf] = (Count(Conf) >= K);
+        S += DP[0][Conf];
+    }
+}
+
+void Solve() {
+    InitDP();
+    for (int i = M, l = 1; i < N; ++i, l ^= 1) {
+        S = 0;
+        for (int Conf = 0; Conf < (1<<M); ++Conf) {
+            DP[l][Conf] = 0;
+            if (Count(Conf) >= K)
+                DP[l][Conf] += DP[l^1][(Conf<<1)&((1<<M)-1)]+DP[l^1][((Conf<<1)&((1<<M)-1))|1];
+            S += DP[l][Conf];
+        }
+    }
+}
+
+void Read() {
+    scanf("%d %d %d", &N, &M, &K);
+}
+
+void Print() {
+    printf("%I64d\n", S);
+}
+
+int main() {
+    Read();
+    Solve();
+    Print();
+    return 0;
+}
