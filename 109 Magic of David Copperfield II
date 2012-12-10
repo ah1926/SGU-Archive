@@ -1,0 +1,67 @@
+#include <cstdio>
+#include <algorithm>
+#include <vector>
+#include <cassert>
+
+using namespace std;
+
+int Size;
+vector< vector<int> > Sol;
+
+inline int Cell(int x, int y) {
+    return 1 + Size * x + y;
+}
+
+void Solve(int X, int Y, int N) {
+    if (N == 1)
+        return;
+    if (N == 2) {
+        vector<int> Cells;
+        Cells.push_back(Cell(X, Y));
+        Sol.push_back(Cells);
+
+        Cells.clear();
+        Cells.push_back(Cell(X, Y + 1)), Cells.push_back(Cell(X + 1, Y));
+        Sol.push_back(Cells);
+
+        return;
+    }
+
+    for (int Color = 0; Color < 2; ++Color) {
+        vector<int> Cells;
+        for (int z = Color; z < N; z += 2) {
+            Cells.push_back(Cell(X, Y + z));
+            Cells.push_back(Cell(X + z, Y));
+            if (N % 2 == 0) {
+                Cells.push_back(Cell(X + N - 1 - z, Y + N - 1));
+                Cells.push_back(Cell(X + N - 1, Y + N - 1 - z));
+            }
+        }
+        sort(Cells.begin(), Cells.end());
+        Cells.erase(unique(Cells.begin(), Cells.end()), Cells.end());
+        Sol.push_back(Cells);
+    }
+    Solve(X + 1, Y + 1, N - 1 - (N % 2 == 0));
+}
+
+void Read() {
+    assert(scanf("%d", &Size) == 1);
+}
+
+void Print() {
+    int K = Size|1;
+    for (size_t i = 0; i < Sol.size(); ++i, K += 2) {
+        printf("%d", K);
+        for (size_t j = 0; j < Sol[i].size(); ++j)
+            printf(" %d", Sol[i][j]);
+        printf("\n");
+    }
+}
+
+int main() {
+    Read();
+    Solve(0, 0, Size);
+    Print();
+    return 0;
+}
+
