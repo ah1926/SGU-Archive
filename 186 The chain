@@ -1,0 +1,40 @@
+#include <cstdio>
+#include <algorithm>
+#include <cassert>
+
+using namespace std;
+
+const int MaxN = 105;
+
+int N, X[MaxN], S;
+
+void Solve() {
+    sort(X, X+N);
+    int l = 0, r = N-1;
+    while (l < r) {
+        if (X[l] == 1) {
+            ++S, ++l, --r;
+            continue;
+        }
+        int Len = min(X[l]-1, r-l);
+        S += Len, r -= Len, X[l] -= Len;
+    }
+}
+
+void Read() {
+    assert(scanf("%d", &N) == 1);
+    for (int i = 0; i < N; ++i)
+        assert(scanf("%d", &X[i]) == 1);
+}
+
+void Print() {
+    printf("%d\n", S);
+}
+
+int main() {
+    Read();
+    Solve();
+    Print();
+    return 0;
+}
+
