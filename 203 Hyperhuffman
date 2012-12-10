@@ -1,0 +1,61 @@
+#include <cstdio>
+#include <queue>
+#include <cassert>
+
+using namespace std;
+
+typedef long long LL;
+
+LL Len;
+queue<LL> LeafQ, InternalQ;
+
+inline LL GetMin() {
+    LL Min;
+    if (LeafQ.empty() || InternalQ.empty()) {
+        if (LeafQ.empty()) {
+            Min = InternalQ.front(); InternalQ.pop();
+        }
+        else {
+            Min = LeafQ.front(); LeafQ.pop();
+        }
+    }
+    else {
+        if (LeafQ.front() < InternalQ.front()) {
+            Min = LeafQ.front(); LeafQ.pop();
+        }
+        else {
+            Min = InternalQ.front(); InternalQ.pop();
+        }
+    }
+    return Min;
+}
+
+void Solve() {
+    while(!LeafQ.empty() || !InternalQ.empty()) {
+        LL X = GetMin(), Y = GetMin();
+        Len += X+Y;
+        if (LeafQ.empty() && InternalQ.empty())
+            break;
+        InternalQ.push(X + Y);
+    }
+}
+
+void Read() {
+    int N; assert(scanf("%d", &N) == 1);
+    for (int i = 1; i <= N; ++i) {
+        int F; assert(scanf("%d", &F) == 1);
+        LeafQ.push(1LL * F);
+    }
+}
+
+void Print() {
+    printf("%I64d\n", Len);
+}
+
+int main() {
+    Read();
+    Solve();
+    Print();
+    return 0;
+}
+
