@@ -1,0 +1,98 @@
+#include <iostream>
+#include <algorithm>
+#include <string>
+
+using namespace std;
+
+typedef long long LL;
+
+const int N = 1e6;
+const int MaxIT = 2100000;
+const LL oo = 1e13;
+
+struct Node {
+    LL Q, P;
+    bool Empty;
+};
+
+Node IT[MaxIT];
+
+inline void Clear(int K) {
+    IT[K].Q = IT[K].P = 0, IT[K].Empty = true;
+}
+
+inline void Push(int K, int L, int R) {
+    if (!IT[K].Empty)
+        return;
+    Clear(K);
+    if (L == R)
+        return;
+    Clear(2 * K), Clear(2 * K + 1);
+}
+
+void Clear(int K, int L, int R, int Pos) {
+    int Mid = (L+R)/2;
+    if (Pos >= R) {
+        Clear(K);
+        return;
+    }
+    Clear(2 * K, L, Mid, Pos);
+    if (Pos > Mid)
+        Clear(2 * K + 1, Mid + 1, R, Pos);
+    IT[K].Q = IT[2 * K].Q + IT[2 * K + 1].Q, IT[K].P = IT[2 * K].P + IT[2 * K + 1].P;
+}
+
+void Update(int K, int L, int R, int P, LL Q) {
+    int Mid = (L + R) / 2;
+    Push(K, L, R);
+    if (L == R) {
+        IT[K].Q += Q, IT[K].P += Q * P, IT[K].Empty = false;
+        return;
+    }
+    if (P <= Mid)
+        Update(2 * K, L, Mid, P, Q);
+    else
+        Update(2 * K + 1, Mid + 1, R, P, Q);
+    IT[K].Q = IT[2 * K].Q + IT[2 * K + 1].Q, IT[K].P = IT[2 * K].P + IT[2 * K + 1].P, IT[K].Empty = false;
+}
+
+void Query(int K, int L, int R, LL Q, LL &P, int &Pos, LL &PosQ) {
+    int Mid = (L + R) / 2;
+    if (L == R) {
+        Pos = Mid, PosQ = Q;
+        P += PosQ * Pos;
+        return;
+    }
+    if (Q <= IT[2 * K].Q)
+        Query(2 * K, L, Mid, Q, P, Pos, PosQ);
+    else
+        P += IT[2 * K].P, Query(2 * K + 1, Mid + 1, R, Q - IT[2 * K].Q, P, Pos, PosQ);
+}
+
+inline string Answer(LL Q, LL P) {
+    if (IT[1].Q < Q)
+        return "UNHAPPY";
+    int Pos = 1; LL PosQ = 0, ReqP = 0;
+    Query(1, 1, N, Q, ReqP, Pos, PosQ);
+    if (P < ReqP)
+        return "UNHAPPY";
+    if (Pos - 1 >= 1)
+        Clear(1, 1, N, Pos - 1);
+    Update(1, 1, N, Pos, -PosQ);
+    return "HAPPY";
+}
+
+void Solve() {
+    string Type; LL Q, P;
+    while (cin >> Type >> Q >> P) {
+        if (Type == "ARRIVE")
+            Update(1, 1, N, P, Q);
+        else
+            cout << Answer(Q, P) << "\n";
+    }
+}
+
+int main() {
+    Solve();
+    return 0;
+}
