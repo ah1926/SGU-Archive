@@ -1,0 +1,168 @@
+#include <cstdio>
+#include <vector>
+#include <algorithm>
+#include <cstring>
+
+using namespace std;
+
+typedef long long LL;
+
+const int MaxN = 25;
+const int DX[] = {-1, 0, 1, 0}, DY[] = {0, 1, 0, -1};
+const int MaxC = 100;
+const int Base = 1000000000;
+
+class Huge {
+  public: int n[MaxC];
+
+	Huge () {
+	    memset(n, 0, sizeof(n));
+	}
+
+	Huge(int A) {
+	    *this = A;
+	}
+
+    void operator= (Huge A) {
+        memcpy(n, A.n, sizeof(A.n));
+	}
+
+	void operator= (int A) {
+	    memset(n, 0, sizeof(n));
+		for (; A > 0; A /= Base)
+            n[++n[0]] = A % Base;
+	}
+
+	Huge operator+ (Huge A) const {
+		Huge B; int i, T = 0;
+		for (i = 1; i <= A.n[0] || i <= n[0] || T; ++i, T /= Base)
+			B.n[i] = (T += (A.n[i] + n[i])) % Base;
+		B.n[0] = i - 1;
+		return B;
+	}
+
+	Huge operator* (Huge A) const {
+		Huge C; int i, j; LL T;
+		for (i = 1; i <= n[0]; ++i) {
+			for (T = 0, j = 1; j <= A.n[0] || T; ++j, T /= Base)
+				C.n[i + j - 1] = (T += (C.n[i + j - 1] + 1LL * n[i] * A.n[j])) % Base;
+			if (i + j - 2 > C.n[0])
+                C.n[0] = i + j - 2;
+		}
+		return C;
+	}
+
+	Huge operator/ (int B) const {
+		Huge A = *this; LL T = 0;
+		for (int i = A.n[0]; i > 0; --i, T %= B)
+			A.n[i] = (T = T * Base + A.n[i]) / B;
+		for (; A.n[0] > 1 && !A.n[A.n[0]]; --A.n[0]);
+		return A;
+	}
+
+	void Print() const {
+	    printf("%d", n[n[0]]);
+	    for (int i = n[0] - 1; i > 0; --i)
+            printf("%.9d", n[i]);
+	}
+};
+
+inline Huge Pow(Huge X, int P) {
+    Huge R = 1;
+    while (P) {
+        if (P&1)
+            R = R * X, P ^= 1;
+        else
+            X = X * X, P >>= 1;
+    }
+    return R;
+}
+
+class Ticket {
+    int n, m;
+    vector< vector<int> > x;
+
+    public:
+    Ticket(int n, int m) {
+        this->n = n, this->m = m;
+        x.resize(n, vector<int>(m, 0));
+        for (int i = 0, p = 0; i < n; ++i)
+            for (int j = 0; j < m; ++j)
+                x[i][j] = p++;
+    }
+
+    void Move(int d, int l = 1) {
+        l %= (d == 0 || d == 2 ? n : m);
+        vector< vector<int> > y = x;
+        for (int i = 0; i < n; ++i)
+            for (int j = 0; j < m; ++j)
+                x[i][j] = y[(i - l * DX[d] + n) % n][(j - l * DY[d] + m) % m];
+    }
+
+    void Rotate() {
+        vector< vector<int> > y = x;
+        swap(n, m);
+        x.clear(); x.resize(n, vector<int>(m, 0));
+        for (int i = 0; i < n; ++i)
+            for (int j = 0; j < m; ++j)
+                x[i][j] = y[m - j - 1][i];
+    }
+
+    void Rotate(int d) {
+        for (; d; --d)
+            this->Rotate();
+    }
+
+    vector<int> ToPerm() {
+        vector<int> Perm;
+        for (int i = 0; i < n; ++i)
+            for (int j = 0; j < m; ++j)
+                Perm.push_back(x[i][j]);
+        return Perm;
+    }
+};
+
+int N, M;
+Huge Sol;
+
+int CountCycles(vector<int> Perm) {
+    int NCycles = 0, n = Perm.size();
+    vector<int> V(n, 0);
+    for (int i = 0; i < n; ++i) {
+        if (V[i])
+            continue;
+        V[i] = 1, ++NCycles;
+        for (int j = Perm[i]; j != i; j = Perm[j])
+            V[j] = 1;
+    }
+    return NCycles;
+}
+
+void Solve() {
+    for (int xd = 0; xd < N; ++xd) {
+        for (int yd = 0; yd < M; ++yd) {
+            for (int d = 0; d < 4; ++d) {
+                if (N != M && d != 0 && d != 2)
+                    continue;
+                Ticket T(N, M); T.Move(0, xd), T.Move(1, yd), T.Rotate(d);
+                Sol = Sol + Pow(2, CountCycles(T.ToPerm()));
+            }
+        }
+    }
+    Sol = Sol / (N * M * (N == M ? 4 : 2));
+}
+
+void Read() {
+    scanf("%d %d", &N, &M);
+}
+
+void Print() {
+    Sol.Print();
+}
+
+int main() {
+    Read();
+    Solve();
+    Print();
+    return 0;
+}
