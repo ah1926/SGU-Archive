@@ -1,0 +1,98 @@
+#include <cstdio>
+#include <vector>
+#include <algorithm>
+
+#define x first
+#define y second
+
+using namespace std;
+
+typedef pair<int, int> pii;
+
+const int oo = 2000000005;
+
+vector<pii> Points;
+int S;
+
+inline void BoundingBox(vector<pii> &P, int &mX, int &MX, int &mY, int &MY) {
+    if (P.empty()) {
+        mX = MX = mY = MY = 0;
+        return;
+    }
+    mX = MX = P[0].x; mY = MY = P[0].y;
+    for (int i = 1; i < static_cast<int>(P.size()); ++i) {
+        mX = min(mX, P[i].x); MX = max(MX, P[i].x);
+        mY = min(mY, P[i].y); MY = max(MY, P[i].y);
+    }
+}
+
+inline bool Inside(const pii &C, const int L, const pii &P) {
+    return (C.x <= P.x && P.x <= C.x + L && C.y <= P.y && P.y <= C.y + L);
+}
+
+inline void Reduce(vector<pii> &P, const int L, const pii &C, vector<pii> &NewP) {
+    NewP.clear();
+    for (int i = 0; i < static_cast<int>(P.size()); ++i)
+        if (!Inside(C, L, P[i]))
+            NewP.push_back(P[i]);
+}
+
+bool Squares(vector<pii> &P, const int L, const int NSquares) {
+    int mX, MX, mY, MY; BoundingBox(P, mX, MX, mY, MY);
+    pii C; vector<pii> NewP;
+    if (NSquares == 1)
+        return max(MX - mX, MY - mY) <= L;
+
+    C.x = mX, C.y = mY;
+    Reduce(P, L, C, NewP);
+    if (Squares(NewP, L, NSquares - 1))
+        return true;
+
+    C.x = mX, C.y = MY - L;
+    Reduce(P, L, C, NewP);
+    if (Squares(NewP, L, NSquares - 1))
+        return true;
+
+    C.x = MX - L, C.y = mY;
+    Reduce(P, L, C, NewP);
+    if (Squares(NewP, L, NSquares - 1))
+        return true;
+
+    C.x = MX - L, C.y = MY - L;
+    Reduce(P, L, C, NewP);
+    if (Squares(NewP, L, NSquares - 1))
+        return true;
+
+    return false;
+}
+
+void Solve() {
+    int L = 0, R = oo;
+    while (L <= R) {
+        int Mid = L + (R - L) / 2;
+        if (Squares(Points, Mid, 3))
+            S = Mid, R = Mid - 1;
+        else
+            L = Mid + 1;
+    }
+}
+
+void Read() {
+    int N; scanf("%d", &N);
+    for (int i = 1; i <= N; ++i) {
+        pii NewP;
+        scanf("%d %d", &NewP.x, &NewP.y);
+        Points.push_back(NewP);
+    }
+}
+
+void Print() {
+    printf("%d\n", S);
+}
+
+int main() {
+    Read();
+    Solve();
+    Print();
+}
+
