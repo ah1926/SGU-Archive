@@ -1,0 +1,53 @@
+#include <cstdio>
+
+using namespace std;
+
+typedef long long LL;
+
+LL A, B, First, Last;
+bool Sol;
+
+inline LL FindDivisor(LL X) {
+    for (LL D = 3; D * D <= X; D += 2)
+        if (X % D == 0)
+            return D;
+    return X;
+}
+
+void MakeEven() {
+    First = 0, Last = 0;
+    if (A % 2 != 0)
+        First = FindDivisor(A);
+    if (B % 2 != 0)
+        Last = FindDivisor(B);
+    Sol = !(First == A || Last == B || A + First > B - Last);
+}
+
+void Solve() {
+    MakeEven();
+    if (!Sol || A == 2) {
+        printf("Impossible\n"); return;
+    }
+    printf("%I64d\n", A);
+    A += First, B -= Last;
+    if (First)
+        printf("%I64d\n", A);
+    while (A != B) {
+        LL Two = 2;
+        for (; A + Two <= B && Two < A && A % Two == 0; Two *= 2); Two /= 2;
+        A += Two;
+        printf("%I64d\n", A);
+    }
+    if (Last)
+        printf("%I64d\n", A+Last);
+}
+
+void Read() {
+    scanf("%I64d %I64d", &A, &B);
+}
+
+int main() {
+    Read();
+    Solve();
+    return 0;
+}
