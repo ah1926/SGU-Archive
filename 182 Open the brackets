@@ -1,0 +1,110 @@
+#include <cstdio>
+#include <vector>
+#include <cassert>
+
+using namespace std;
+
+const int MaxL = 33000;
+
+char String[MaxL], *e, Sol[MaxL];
+int Value[26], L;
+bool Used[26];
+vector<char> Variables;
+
+int Factor();
+int Term();
+int Expression();
+
+int Factor() {
+    if (*e == '(') {
+        ++e;
+        int E = Expression();
+        ++e;
+        return E;
+    }
+    if (*e == '!') {
+        ++e;
+        return !Factor();
+    }
+    int V = Value[*e - 'a'];
+    ++e;
+    return V;
+}
+
+int Term() {
+    int F = Factor();
+    while (*e == '&') {
+        ++e;
+        F &= Factor();
+    }
+    return F;
+}
+
+int Expression() {
+    int T = Term();
+    while (*e == '|' || *e == '<' || *e == '=' || *e == '#') {
+        if (*e == '|') {
+            e += 2;
+            T |= Term();
+        }
+        if (*e == '<') {
+            e += 3;
+            T = (T == Term());
+        }
+        if (*e == '=') {
+            e += 2;
+            T = (T <= Term());
+        }
+        if (*e == '#') {
+            ++e;
+            T ^= Term();
+        }
+    }
+    return T;
+}
+
+void Solve() {
+    for(int Conf = 0; Conf < (1<<Variables.size()); ++Conf) {
+        for (size_t i = 0; i < Variables.size(); ++i)
+            if (Conf&(1<<i))
+                Value[Variables[i] - 'a'] = 1;
+        e = String;
+        if (Expression() == 1) {
+            Sol[L++] = '|', Sol[L++] = '|';
+            for (size_t i = 0; i < Variables.size(); ++i) {
+                if (i > 0)
+                    Sol[L++] = '&';
+                if (!(Conf&(1<<i)))
+                    Sol[L++] = '!';
+                Sol[L++] = Variables[i];
+            }
+        }
+        for (size_t i = 0; i < Variables.size(); ++i)
+            Value[Variables[i] - 'a'] = 0;
+    }
+    if (Sol[0] == '\0') {
+        Sol[2] = Variables[0];
+        Sol[3] = '&';
+        Sol[4] = '!';
+        Sol[5] = Variables[0];
+    }
+}
+
+void Read() {
+    assert(scanf("%s", String) == 1);
+    for (int i = 0; String[i]; ++i)
+        if ('a' <= String[i] && String[i] <= 'j' && !Used[String[i] - 'a'])
+            Used[String[i] - 'a'] = true, Variables.push_back(String[i]);
+}
+
+void Print() {
+    printf("%s\n", Sol + 2);
+}
+
+int main() {
+    Read();
+    Solve();
+    Print();
+    return 0;
+}
+
