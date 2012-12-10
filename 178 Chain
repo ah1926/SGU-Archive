@@ -1,0 +1,21 @@
+#include <iostream>
+
+using namespace std;
+
+typedef long long LL;
+
+inline LL Chain(int K) {
+    LL Sum = 1;
+    for (int i = 1; i <= K + 1; ++i)
+        Sum *= 2;
+    Sum = (K + 1) * Sum - 1;
+    return Sum;
+}
+
+int main() {
+    LL N; int K;
+    cin >> N;
+    for (K = 0; Chain(K) < N; ++K);
+    cout << K << "\n";
+    return 0;
+}
